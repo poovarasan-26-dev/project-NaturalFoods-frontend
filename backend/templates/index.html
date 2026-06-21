@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ site_settings.landing_title|default:"FreshCart Admin Portal" }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous">
+  <style>
+    {% if site_settings.body_font %}body { font-family: {{ site_settings.body_font }} !important; }{% endif %}
+    {% if site_settings.body_font_size %}body { font-size: {{ site_settings.body_font_size }} !important; }{% endif %}
+    {% if site_settings.body_bg %}body { background: {{ site_settings.body_bg }} !important; }{% endif %}
+    {% if site_settings.custom_css %}{{ site_settings.custom_css }}{% endif %}
+    :root {
+      --bg: #f4f7fb;
+      --panel: rgba(255, 255, 255, 0.92);
+      --panel-strong: #ffffff;
+      --text: #17203d;
+      --muted: #7082a3;
+      --line: rgba(23, 32, 61, 0.08);
+      --brand: #18c37d;
+      --brand-dark: #10a068;
+      --brand-soft: rgba(24, 195, 125, 0.12);
+      --danger: #de3c4b;
+      --shadow-lg: 0 32px 80px rgba(20, 38, 75, 0.18);
+      --shadow-md: 0 18px 42px rgba(20, 38, 75, 0.12);
+      --shadow-sm: 0 10px 24px rgba(20, 38, 75, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(24, 195, 125, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(66, 133, 244, 0.16), transparent 24%),
+        linear-gradient(180deg, #f9fbff 0%, #eef3fb 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    .page-shell {
+      position: relative;
+      min-height: 100vh;
+      padding: 34px;
+    }
+
+    .backdrop-orb {
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(12px);
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    .orb-a {
+      width: 260px;
+      height: 260px;
+      top: 40px;
+      left: 30px;
+      background: rgba(24, 195, 125, 0.14);
+    }
+
+    .orb-b {
+      width: 320px;
+      height: 320px;
+      right: 40px;
+      bottom: 40px;
+      background: rgba(45, 109, 246, 0.12);
+    }
+
+    .preview-board {
+      position: relative;
+      z-index: 1;
+      width: min(1320px, 100%);
+      margin: 0 auto;
+      padding: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 34px;
+      background: rgba(255, 255, 255, 0.58);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .preview-topbar {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      justify-content: space-between;
+      margin-bottom: 34px;
+    }
+
+    .brand-chip {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 280px;
+    }
+
+    .brand-icon {
+      width: 74px;
+      height: 74px;
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #19c983 0%, #00a96d 100%);
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(24, 195, 125, 0.28);
+      font-size: 1.75rem;
+    }
+
+    .brand-copy h1 {
+      font-size: clamp(2rem, 3vw, 3rem);
+      line-height: 1;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+
+    .brand-copy p {
+      color: var(--brand);
+      font-size: 0.92rem;
+      letter-spacing: 0.34em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .search-shell {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      min-width: 280px;
+    }
+
+    .search-box {
+      flex: 1;
+      max-width: 720px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 24px;
+      height: 72px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .search-badge,
+    .profile-badge {
+      width: 72px;
+      height: 72px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      place-items: center;
+      color: #7d8ca8;
+      font-size: 1.4rem;
+    }
+
+    .profile-summary {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 240px;
+      justify-content: flex-end;
+    }
+
+    .profile-copy {
+      text-align: right;
+    }
+
+    .profile-copy .role {
+      color: var(--brand);
+      font-size: 0.9rem;
+      letter-spacing: 0.3em;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .profile-copy .name {
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .profile-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #ebfff6 0%, #d5f7e7 100%);
+      color: var(--brand);
+      display: grid;
+      place-items: center;
+      font-size: 2rem;
+      font-weight: 800;
+      border: 1px solid rgba(24, 195, 125, 0.24);
+      box-shadow: 0 14px 28px rgba(24, 195, 125, 0.16);
+    }
+
+    .preview-body {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 34px;
+      align-items: start;
+    }
+
+    .sidebar-preview,
+    .content-preview {
+      min-height: 660px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: var(--shadow-md);
+      padding: 30px;
+    }
+
+    .menu-label {
+      color: #bdc8dc;
+      font-weight: 800;
+      letter-spacing: 0.26em;
+      margin-bottom: 24px;
+    }
+
+    .menu-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 24px;
+      border-radius: 22px;
+      color: #6c7d9b;
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+
+    .menu-item i {
+      font-size: 1.1rem;
+      width: 22px;
+    }
+
+    .menu-item.active {
+      background: #ffffff;
+      color: var(--brand);
+      box-shadow: 0 24px 34px rgba(26, 52, 98, 0.08);
+    }
+
+    .menu-item.signout {
+      margin-top: 52px;
+      color: #ff4655;
+    }
+
+    .hero-heading {
+      font-size: clamp(2.2rem, 4vw, 3.9rem);
+      line-height: 1;
+      letter-spacing: -0.05em;
+      margin-bottom: 18px;
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: #58759d;
+      margin-bottom: 34px;
+      max-width: 620px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 22px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 22px 42px rgba(26, 52, 98, 0.07);
+      border: 1px solid rgba(23, 32, 61, 0.05);
+    }
+
+    .stat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .stat-icon {
+      width: 74px;
+      height: 74px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      background: #f4f8ff;
+      color: #8c9db8;
+      font-size: 1.9rem;
+    }
+
+    .stat-trend {
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 1.02rem;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-trend.positive {
+      background: rgba(24, 195, 125, 0.12);
+      color: var(--brand);
+    }
+
+    .stat-trend.negative {
+      background: rgba(222, 60, 75, 0.12);
+      color: var(--danger);
+    }
+
+    .stat-label {
+      color: #92a4c2;
+      font-size: 0.96rem;
+      font-weight: 800;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .stat-value {
+      font-size: clamp(2rem, 3vw, 3.2rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .bottom-panels {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 22px;
+    }
+
+    .panel-card {
+      min-height: 220px;
+      border-radius: 30px;
+      background: #ffffff;
+      padding: 30px;
+      box-shadow: 0 22px 42px rgba(26, 52, 98, 0.07);
+      border: 1px solid rgba(23, 32, 61, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -10% -45% 50%;
+      height: 180px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(24, 195, 125, 0.13), transparent 68%);
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .panel-card h3 {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+
+    .panel-card p {
+      color: #8ca0bf;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+    }
+
+    .graph-bars {
+      display: flex;
+      align-items: end;
+      gap: 16px;
+      height: 120px;
+    }
+
+    .graph-bars span {
+      flex: 1;
+      border-radius: 18px 18px 6px 6px;
+      background: linear-gradient(180deg, #1cc782 0%, #c7f6df 100%);
+      box-shadow: 0 16px 28px rgba(24, 195, 125, 0.14);
+    }
+
+    .products-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .product-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: #f7fafe;
+      color: #506684;
+      font-weight: 700;
+    }
+
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .auth-modal {
+      width: min(380px, calc(100vw - 32px));
+      border-radius: 20px;
+      background: #fff;
+      padding: 32px 28px 28px;
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.2);
+      animation: floatIn 0.25s ease;
+    }
+
+    .auth-modal h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #0f172a;
+    }
+
+    .auth-subcopy {
+      font-size: .85rem;
+      color: #64748b;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: .85rem;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .form-control {
+      width: 100%;
+      height: 46px;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      padding: 0 14px;
+      font-size: .9rem;
+      color: #0f172a;
+      outline: none;
+      transition: .2s;
+    }
+
+    .form-control:focus {
+      border-color: #10a068;
+      box-shadow: 0 0 0 3px rgba(16, 160, 104, 0.1);
+      background: #fff;
+    }
+
+    .auth-button {
+      width: 100%;
+      height: 48px;
+      border: 0;
+      border-radius: 12px;
+      background: #10a068;
+      color: #fff;
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: 4px;
+    }
+
+    .auth-button:hover {
+      background: #0d8a58;
+      transform: translateY(-1px);
+    }
+
+    .auth-button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .feedback {
+      display: none;
+      margin-bottom: 14px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: .85rem;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .feedback.error {
+      display: block;
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .success-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      padding: 24px;
+    }
+
+    .success-overlay.active {
+      display: flex;
+    }
+
+    .success-popup {
+      width: min(320px, 100%);
+      text-align: center;
+      padding: 28px 24px;
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.2);
+      animation: floatIn 0.25s ease;
+    }
+
+    .success-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #ecfdf5;
+      color: #10a068;
+      font-size: 1.5rem;
+    }
+
+    .success-popup h3 {
+      font-size: 1.2rem;
+      margin-bottom: 6px;
+      color: #0f172a;
+    }
+
+    .success-popup p {
+      color: #64748b;
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    @keyframes floatIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @media (max-width: 1180px) {
+      .preview-topbar,
+      .preview-body,
+      .bottom-panels {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .search-shell,
+      .profile-summary {
+        justify-content: flex-start;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page-shell {
+        padding: 18px;
+      }
+
+      .preview-board {
+        padding: 18px;
+      }
+
+      .brand-chip,
+      .search-shell,
+      .profile-summary {
+        min-width: 0;
+      }
+
+      .preview-topbar {
+        gap: 20px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-modal {
+        padding: 28px 22px 24px;
+        border-radius: 28px;
+      }
+
+      .auth-modal h2 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+  {% if site_settings.custom_html_head %}{{ site_settings.custom_html_head|safe }}{% endif %}
+</head>
+<body>
+  {% if site_settings.custom_html_body %}{{ site_settings.custom_html_body|safe }}{% endif %}
+  <div class="page-shell">
+    <div class="backdrop-orb orb-a"></div>
+    <div class="backdrop-orb orb-b"></div>
+
+    <section class="preview-board" aria-hidden="true">
+      <div class="preview-topbar">
+        <div class="brand-chip">
+          <div class="brand-icon" {% if site_settings.brand_bg %}style="background:{{ site_settings.brand_bg }}"{% endif %}>
+            {% if site_settings.brand_icon %}<i class="{{ site_settings.brand_icon }}"></i>{% else %}<i class="fa-solid fa-store"></i>{% endif %}
+          </div>
+          <div class="brand-copy">
+            <h1>{{ site_settings.landing_heading|default:"FreshCart" }}</h1>
+            <p>{{ site_settings.landing_subheading|default:"Admin Elite" }}</p>
+          </div>
+        </div>
+
+        <div class="search-shell">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Search dashboard elite...</span>
+          </div>
+          <div class="search-badge"><i class="fa-regular fa-moon"></i></div>
+          <div class="search-badge"><i class="fa-regular fa-envelope"></i></div>
+          <div class="search-badge"><i class="fa-regular fa-bell"></i></div>
+        </div>
+
+        <div class="profile-summary">
+          <div class="profile-copy">
+            <div class="role">Premium Admin</div>
+            <div class="name">Aravinth Thala</div>
+          </div>
+          <div class="profile-avatar">A</div>
+        </div>
+      </div>
+
+      <div class="preview-body">
+        <aside class="sidebar-preview">
+          <div class="menu-label">Main Dashboard</div>
+          <div class="menu-stack">
+            <div class="menu-item active"><i class="fa-solid fa-table-cells-large"></i> Dashboard</div>
+            <div class="menu-item"><i class="fa-solid fa-box"></i> Products</div>
+            <div class="menu-item"><i class="fa-solid fa-cart-shopping"></i> Orders</div>
+            <div class="menu-item"><i class="fa-regular fa-bell"></i> Notifications</div>
+            <div class="menu-item"><i class="fa-solid fa-users"></i> Customers</div>
+            <div class="menu-item signout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out Portal</div>
+          </div>
+        </aside>
+
+        <main class="content-preview">
+          <h2 class="hero-heading">{{ site_settings.landing_hero_heading|default:"Dashboard Overview" }}</h2>
+          <p class="hero-subtitle">{{ site_settings.landing_hero_subtitle|default:"Monitor your store's performance and recent activities." }}</p>
+          <button onclick="openContactForm()" style="padding:10px 20px;border:1px solid #10a068;background:#fff;color:#10a068;border-radius:8px;font-weight:600;cursor:pointer;margin-bottom:20px">Contact Us</button>
+
+          <div class="stats-grid">
+            <article class="stat-card">
+              <div class="stat-top">
+                <div class="stat-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                <div class="stat-trend positive">+12.5%</div>
+              </div>
+              <div class="stat-label">Total Sales</div>
+              <div class="stat-value">$242.98</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <div class="stat-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+                <div class="stat-trend positive">+8.2%</div>
+              </div>
+              <div class="stat-label">Total Orders</div>
+              <div class="stat-value">17</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <div class="stat-icon"><i class="fa-solid fa-box-open"></i></div>
+                <div class="stat-trend negative">-2.4%</div>
+              </div>
+              <div class="stat-label">Total Products</div>
+              <div class="stat-value">13</div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <div class="stat-icon"><i class="fa-solid fa-user-group"></i></div>
+                <div class="stat-trend positive">+15.3%</div>
+              </div>
+              <div class="stat-label">Total Customers</div>
+              <div class="stat-value">2</div>
+            </article>
+          </div>
+
+          <div class="bottom-panels">
+            <section class="panel-card">
+              <h3>Revenue Analytics</h3>
+              <p>Monthly Store Growth</p>
+              <div class="graph-bars">
+                <span style="height:56%"></span>
+                <span style="height:72%"></span>
+                <span style="height:64%"></span>
+                <span style="height:90%"></span>
+                <span style="height:78%"></span>
+                <span style="height:100%"></span>
+              </div>
+            </section>
+
+            <section class="panel-card">
+              <h3>Top Products</h3>
+              <p>By Sales Volume</p>
+              <div class="products-list">
+                <div class="product-row"><span>Organic Apple Box</span><span>128 sold</span></div>
+                <div class="product-row"><span>Farm Fresh Milk</span><span>94 sold</span></div>
+                <div class="product-row"><span>Premium Avocado</span><span>76 sold</span></div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+    </section>
+  </div>
+
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-modal">
+      <h2>{{ site_settings.landing_welcome_title|default:"Welcome" }}</h2>
+      <p class="auth-subcopy">{{ site_settings.landing_welcome_text|default:"Sign in to your account or create a new one." }}</p>
+
+      <div id="authFeedback" class="feedback"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginUsername">Username</label>
+          <input class="form-control" id="loginUsername" name="username" type="text" placeholder="Enter your username" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input class="form-control" id="loginPassword" name="password" type="password" placeholder="Enter your password" required>
+        </div>
+        <button class="auth-button" id="loginButton" type="submit">Sign In</button>
+        <p style="text-align:center;margin-top:14px;font-size:.85rem;color:#64748b">
+          First time? <a href="/register/" style="color:#10a068;font-weight:700;text-decoration:none">Create an account</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-popup">
+      <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <h3 id="successTitle">Login Successful</h3>
+      <p id="successMessage">Welcome back! Opening dashboard...</p>
+    </div>
+  </div>
+
+  <!-- Contact Form Overlay -->
+  <div class="auth-overlay" id="contactOverlay">
+    <div class="auth-modal">
+      <h2>Contact Us</h2>
+      <p class="auth-subcopy">Send us a message and we'll get back to you as soon as possible.</p>
+
+      <div id="contactFeedback" class="feedback"></div>
+
+      <form id="contactForm">
+        <div class="form-group">
+          <label for="contactName">Full Name</label>
+          <input class="form-control" id="contactName" name="name" type="text" placeholder="Enter your full name" required>
+        </div>
+        <div class="form-group">
+          <label for="contactEmail">Email Address</label>
+          <input class="form-control" id="contactEmail" name="email" type="email" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+          <label for="contactPhone">Phone Number</label>
+          <input class="form-control" id="contactPhone" name="phone" type="tel" placeholder="Enter your phone (optional)">
+        </div>
+        <div class="form-group">
+          <label for="contactMessage">Message</label>
+          <textarea class="form-control" id="contactMessage" name="message" rows="4" placeholder="Enter your message" style="height:auto;padding:8px 14px;font-family:inherit" required></textarea>
+        </div>
+        <button type="submit" class="auth-button" id="contactButton">Send Message</button>
+        <button type="button" class="auth-button" id="closeContactBtn" onclick="closeContactForm()" style="background:#64748b;margin-top:8px">Close</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const authOverlay = document.getElementById("authOverlay");
+    const successOverlay = document.getElementById("successOverlay");
+    const authFeedback = document.getElementById("authFeedback");
+    const loginForm = document.getElementById("loginForm");
+
+    function hideFeedback() {
+      authFeedback.className = "feedback";
+      authFeedback.textContent = "";
+    }
+
+    function showError(message) {
+      authFeedback.textContent = message;
+      authFeedback.className = "feedback error";
+    }
+
+    function extractErrorMessage(payload, fallback) {
+      if (!payload) return fallback;
+      if (typeof payload.detail === "string") return payload.detail;
+      for (const value of Object.values(payload)) {
+        if (Array.isArray(value) && value.length) return value[0];
+        if (typeof value === "string") return value;
+      }
+      return fallback;
+    }
+
+    async function requestJson(url, body) {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      let payload = null;
+      try { payload = await response.json(); } catch (_) {}
+      return { response, payload };
+    }
+
+    async function loginUser(username, password) {
+      const { response, payload } = await requestJson("/api/auth/login/", { username, password });
+      if (!response.ok) throw new Error(extractErrorMessage(payload, "Invalid credentials"));
+      localStorage.setItem("access_token", payload.access);
+      localStorage.setItem("refresh_token", payload.refresh);
+    }
+
+    function openSuccess() {
+      successOverlay.classList.add("active");
+      authOverlay.style.display = "none";
+      setTimeout(() => { window.location.href = "/dashboard/"; }, 1200);
+    }
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      hideFeedback();
+      const btn = document.getElementById("loginButton");
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      btn.disabled = true;
+      btn.textContent = "Signing in...";
+      try {
+        await loginUser(username, password);
+        openSuccess();
+      } catch (error) {
+        showError(error.message || "Unable to login right now.");
+        btn.disabled = false;
+        btn.textContent = "Sign In";
+      }
+    });
+
+    async function tryRefreshToken() {
+      const refresh = localStorage.getItem("refresh_token");
+      if (!refresh) return false;
+      try {
+        const { response, payload } = await requestJson("/api/auth/refresh/", { refresh });
+        if (response.ok) { localStorage.setItem("access_token", payload.access); return true; }
+      } catch (_) {}
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      return false;
+    }
+
+    // Contact Form Functions
+    const contactOverlay = document.getElementById("contactOverlay");
+    const contactForm = document.getElementById("contactForm");
+    const contactFeedback = document.getElementById("contactFeedback");
+
+    function openContactForm() {
+      contactOverlay.style.display = "flex";
+      contactForm.reset();
+      contactFeedback.className = "feedback";
+      contactFeedback.textContent = "";
+    }
+
+    function closeContactForm() {
+      contactOverlay.style.display = "none";
+      contactForm.reset();
+      contactFeedback.className = "feedback";
+      contactFeedback.textContent = "";
+    }
+
+    function showContactError(message) {
+      contactFeedback.textContent = message;
+      contactFeedback.className = "feedback error";
+    }
+
+    function showContactSuccess(message) {
+      contactFeedback.textContent = message;
+      contactFeedback.className = "feedback";
+      contactFeedback.style.display = "block";
+      contactFeedback.style.background = "#ecfdf5";
+      contactFeedback.style.color = "#10a068";
+      contactFeedback.style.border = "1px solid #86efac";
+    }
+
+    contactForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const btn = document.getElementById("contactButton");
+      const name = document.getElementById("contactName").value.trim();
+      const email = document.getElementById("contactEmail").value.trim();
+      const phone = document.getElementById("contactPhone").value.trim();
+      const message = document.getElementById("contactMessage").value.trim();
+
+      btn.disabled = true;
+      btn.textContent = "Sending...";
+
+      try {
+        const { response, payload } = await requestJson("/api/leads/contact/submit/", {
+          name,
+          email,
+          phone,
+          message
+        });
+
+        if (!response.ok) {
+          throw new Error(extractErrorMessage(payload, "Failed to send message"));
+        }
+
+        showContactSuccess(payload.message || "Message sent successfully!");
+        contactForm.reset();
+        setTimeout(() => {
+          closeContactForm();
+        }, 2000);
+      } catch (error) {
+        showContactError(error.message || "Unable to send message right now.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Send Message";
+      }
+    });
+
+    // Close contact form on overlay click
+    contactOverlay.addEventListener("click", (event) => {
+      if (event.target === contactOverlay) {
+        closeContactForm();
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (localStorage.getItem("access_token") || await tryRefreshToken()) {
+        window.location.href = "/dashboard/";
+        return;
+      }
+      try {
+        const { response, payload } = await requestJson("/api/auth/login/", {});
+        if (response.ok) {
+          localStorage.setItem("access_token", payload.access);
+          localStorage.setItem("refresh_token", payload.refresh);
+          window.location.href = "/dashboard/";
+        }
+      } catch (err) {
+        console.error("Auto-login error:", err);
+      }
+    });
+  </script>
+</body>
+</html>

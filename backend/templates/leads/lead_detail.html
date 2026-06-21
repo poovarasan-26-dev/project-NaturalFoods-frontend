@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Lead Detail - CRM System{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2 id="leadName"></h2>
+  <div>
+    <a id="editLink" href="#" class="btn btn-secondary"><i class="fas fa-edit"></i> Edit</a>
+    <button id="deleteBtn" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
+  </div>
+</div>
+<div id="leadDetail" class="card"></div>
+
+<script>
+const leadId = window.location.pathname.match(/\/leads\/(\d+)/)?.[1];
+const token = localStorage.getItem("access_token");
+if (!token) { window.location.href = "/login/"; }
+
+async function loadLead() {
+  try {
+    const res = await fetch("/api/leads/" + leadId + "/", {
+      headers: {"Authorization": "Bearer " + token},
+    });
+    if (!res.ok) { window.location.href = "/leads/"; return; }
+    const l = await res.json();
+    document.getElementById("leadName").textContent = l.name;
+    document.getElementById("editLink").href = "/leads/" + l.id + "/edit/";
+    document.getElementById("leadDetail").innerHTML = `
+      <p><strong>Email:</strong> ${l.email || "-"}</p>
+      <p><strong>Phone:</strong> ${l.phone || "-"}</p>
+      <p><strong>Company:</strong> ${l.company || "-"}</p>
+      <p><strong>Status:</strong> <span class="badge badge-${l.status}">${l.status}</span></p>
+      <p><strong>Notes:</strong> ${l.notes || "-"}</p>
+      <p><strong>Created By:</strong> ${l.created_by_email}</p>
+      <p><strong>Created:</strong> ${new Date(l.created_at).toLocaleString()}</p>
+      <p><strong>Updated:</strong> ${new Date(l.updated_at).toLocaleString()}</p>
+    `;
+  } catch (e) { console.error(e); }
+}
+
+document.getElementById("deleteBtn")?.addEventListener("click", async function() {
+  if (!confirm("Delete this lead?")) return;
+  try {
+    const res = await fetch("/api/leads/" + leadId + "/", {
+      method: "DELETE",
+      headers: {"Authorization": "Bearer " + token},
+    });
+    if (res.ok) { window.location.href = "/leads/"; }
+  } catch (e) { console.error(e); }
+});
+
+loadLead();
+</script>
+{% endblock %}

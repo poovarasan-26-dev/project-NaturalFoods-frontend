@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ site_settings.site_title|default:"CRM System" }}{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% if site_settings.custom_font %}
+  <link href="https://fonts.googleapis.com/css2?family={{ site_settings.custom_font|urlencode }}&display=swap" rel="stylesheet">
+  {% endif %}
+  <style>
+    {% if site_settings.navbar_bg %}.navbar { background-color: {{ site_settings.navbar_bg }} !important; }{% endif %}
+    {% if site_settings.navbar_text_color %}.navbar, .navbar a { color: {{ site_settings.navbar_text_color }} !important; }{% endif %}
+    {% if site_settings.footer_bg %}.footer { background-color: {{ site_settings.footer_bg }} !important; }{% endif %}
+    {% if site_settings.footer_text_color %}.footer, .footer p { color: {{ site_settings.footer_text_color }} !important; }{% endif %}
+    {% if site_settings.body_font %}body { font-family: {{ site_settings.body_font }} !important; }{% endif %}
+    {% if site_settings.body_font_size %}body { font-size: {{ site_settings.body_font_size }} !important; }{% endif %}
+    {% if site_settings.body_bg %}body { background-color: {{ site_settings.body_bg }} !important; }{% endif %}
+    {% if site_settings.custom_css %}{{ site_settings.custom_css }}{% endif %}
+  </style>
+  {% if site_settings.custom_html_head %}{{ site_settings.custom_html_head|safe }}{% endif %}
+</head>
+<body>
+  <nav class="navbar" {% if site_settings.navbar_bg %}style="background-color:{{ site_settings.navbar_bg }}"{% endif %}>
+    <div class="container nav-container">
+      <a href="/" class="nav-brand">
+        {% if site_settings.site_logo %}
+          <img src="{{ site_settings.site_logo }}" alt="{{ site_settings.site_title|default:'Logo' }}" style="height:32px;width:auto;vertical-align:middle;margin-right:8px">
+        {% endif %}
+        {{ site_settings.site_brand|default:"CRM" }}
+      </a>
+      <button class="nav-toggle" id="navToggle"><i class="fas fa-bars"></i></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+        {% if user.is_authenticated %}
+          <li><a href="/dashboard/"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
+          <li><a href="/leads/"><i class="fas fa-users"></i> Leads</a></li>
+          <li><a href="/messages/"><i class="fas fa-envelope"></i> Messages</a></li>
+          <li><a href="/profile/"><i class="fas fa-user"></i> Profile</a></li>
+          <li>
+            <form method="POST" action="{% url 'logout' %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </form>
+          </li>
+        {% else %}
+          <li><a href="/"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+          <li><a href="/"><i class="fas fa-user-plus"></i> Register</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container main-content">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer" {% if site_settings.footer_bg %}style="background-color:{{ site_settings.footer_bg }}"{% endif %}>
+    <div class="container">
+      <p>{% if site_settings.footer_text %}{{ site_settings.footer_text|safe }}{% else %}&copy; {% now "Y" %} CRM System. All rights reserved.{% endif %}</p>
+    </div>
+  </footer>
+
+  {% if site_settings.custom_html_body %}{{ site_settings.custom_html_body|safe }}{% endif %}
+
+  <script>
+    document.getElementById("navToggle")?.addEventListener("click", function() {
+      document.getElementById("navLinks").classList.toggle("show");
+    });
+  </script>
+</body>
+</html>

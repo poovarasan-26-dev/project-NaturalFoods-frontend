@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Messages - CRM System{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>Messages</h2>
+  <div class="tab-group">
+    <button class="tab active" data-tab="inbox">Inbox <span id="unreadBadge" class="badge"></span></button>
+    <button class="tab" data-tab="sent">Sent</button>
+    <a href="/messages/compose/" class="btn btn-primary"><i class="fas fa-plus"></i> Compose</a>
+  </div>
+</div>
+<div id="inbox" class="tab-content active">
+  <table class="table"><tbody id="inboxBody"></tbody></table>
+</div>
+<div id="sent" class="tab-content">
+  <table class="table"><tbody id="sentBody"></tbody></table>
+</div>
+
+<script>
+const token = localStorage.getItem("access_token");
+if (!token) { window.location.href = "/login/"; }
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", function() {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+    this.classList.add("active");
+    document.getElementById(this.dataset.tab).classList.add("active");
+  });
+});
+
+async function loadInbox() {
+  try {
+    const res = await fetch("/api/messages/inbox/", {
+      headers: {"Authorization": "Bearer " + token},
+    });
+    const msgs = await res.json();
+    document.getElementById("inboxBody").innerHTML = msgs.map(m => `
+      <tr class="${m.is_read ? "" : "unread"}">
+        <td><strong>${m.sender_email}</strong></td>
+        <td><a href="/messages/${m.id}/">${m.subject}</a></td>
+        <td>${new Date(m.created_at).toLocaleString()}</td>
+      </tr>
+    `).join("") || "<tr><td colspan='3'>No messages</td></tr>";
+  } catch (e) { console.error(e); }
+}
+
+async function loadSent() {
+  try {
+    const res = await fetch("/api/messages/sent/", {
+      headers: {"Authorization": "Bearer " + token},
+    });
+    const msgs = await res.json();
+    document.getElementById("sentBody").innerHTML = msgs.map(m => `
+      <tr>
+        <td><strong>${m.recipient_email}</strong></td>
+        <td><a href="/messages/${m.id}/">${m.subject}</a></td>
+        <td>${new Date(m.created_at).toLocaleString()}</td>
+      </tr>
+    `).join("") || "<tr><td colspan='3'>No messages</td></tr>";
+  } catch (e) { console.error(e); }
+}
+
+async function loadUnread() {
+  try {
+    const res = await fetch("/api/messages/unread-count/", {
+      headers: {"Authorization": "Bearer " + token},
+    });
+    const data = await res.json();
+    const badge = document.getElementById("unreadBadge");
+    if (data.unread_count > 0) {
+      badge.textContent = data.unread_count;
+      badge.style.display = "inline";
+    }
+  } catch (e) { console.error(e); }
+}
+
+loadInbox();
+loadSent();
+loadUnread();
+</script>
+{% endblock %}

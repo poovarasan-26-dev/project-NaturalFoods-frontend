@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Register - CRM System{% endblock %}
+{% block content %}
+<div class="form-page">
+  <h2>Create an Account</h2>
+  <form id="registerForm" class="crm-form">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" name="phone" class="form-control" placeholder="Optional">
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" class="form-control" minlength="6" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+    <p class="form-footer">Already have an account? <a href="/login/">Sign in</a></p>
+  </form>
+  <div id="registerError" class="alert alert-danger" style="display:none"></div>
+</div>
+
+<div id="registerSuccessToast" class="toast toast-success" style="display:none">Signup successful! Opening dashboard...</div>
+
+<script>
+document.getElementById("registerForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const data = {
+    username: document.getElementById("username").value,
+    email: document.getElementById("email").value,
+    phone: document.getElementById("phone").value,
+    password: document.getElementById("password").value,
+  };
+  try {
+    const res = await fetch("/api/auth/register/", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      const loginRes = await fetch("/api/auth/login/", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          username: data.username,
+          password: data.password,
+        }),
+      });
+
+      if (!loginRes.ok) {
+        window.location.href = "/";
+        return;
+      }
+
+      const loginJson = await loginRes.json();
+      localStorage.setItem("access_token", loginJson.access);
+      localStorage.setItem("refresh_token", loginJson.refresh);
+
+      const toast = document.getElementById("registerSuccessToast");
+      toast.style.display = "block";
+      setTimeout(() => { window.location.href = "/dashboard/"; }, 1200);
+    } else {
+      const err = await res.json();
+      const errorValues = Object.values(err);
+      const firstError = Array.isArray(errorValues[0]) ? errorValues[0][0] : (errorValues[0] || JSON.stringify(err));
+      document.getElementById("registerError").textContent = firstError;
+      document.getElementById("registerError").style.display = "block";
+    }
+  } catch (e) {
+    document.getElementById("registerError").textContent = "Network error";
+    document.getElementById("registerError").style.display = "block";
+  }
+});
+</script>
+{% endblock %}

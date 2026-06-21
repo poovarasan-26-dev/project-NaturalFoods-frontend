@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Profile - CRM System{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>My Profile</h2>
+</div>
+<div id="profileData" class="card">
+  <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+  <p><strong>Username:</strong> <span id="profileUsername"></span></p>
+  <p><strong>Phone:</strong> <span id="profilePhone"></span></p>
+  <p><strong>Role:</strong> <span id="profileRole"></span></p>
+  <p><strong>Joined:</strong> <span id="profileJoined"></span></p>
+</div>
+
+<script>
+async function loadProfile() {
+  const token = localStorage.getItem("access_token");
+  if (!token) { window.location.href = "/login/"; return; }
+  try {
+    const res = await fetch("/api/auth/profile/", {
+      headers: {"Authorization": "Bearer " + token},
+    });
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById("profileEmail").textContent = data.email;
+      document.getElementById("profileUsername").textContent = data.username;
+      document.getElementById("profilePhone").textContent = data.phone || "-";
+      document.getElementById("profileRole").textContent = data.role;
+      document.getElementById("profileJoined").textContent = new Date(data.date_joined).toLocaleDateString();
+    } else {
+      window.location.href = "/login/";
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+loadProfile();
+</script>
+{% endblock %}

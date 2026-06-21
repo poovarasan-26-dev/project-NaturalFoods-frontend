@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice - {{ order.order_id }}</title>
+  <link rel="icon" href="data:,">
+  <style>
+    @page { margin: 15mm; size: A4; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { background: #fff; padding: 20px; color: #2b3e34; }
+    .invoice { max-width: 210mm; margin: 0 auto; }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #1b4332; }
+    .brand h1 { color: #1b4332; font-size: 28px; letter-spacing: 1px; }
+    .brand p { color: #6b7a72; font-size: 12px; margin-top: 2px; }
+    .inv-title { text-align: right; }
+    .inv-title h2 { color: #2ec4b6; font-size: 24px; letter-spacing: 2px; }
+    .inv-title p { color: #6b7a72; font-size: 12px; margin-top: 4px; }
+    .meta { display: flex; justify-content: space-between; margin-bottom: 30px; }
+    .meta-box { width: 48%; }
+    .meta-box h3 { font-size: 12px; color: #1b4332; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #d8f3dc; padding-bottom: 4px; }
+    .meta-box .row { font-size: 13px; padding: 3px 0; display: flex; }
+    .meta-box .row .lbl { color: #6b7a72; width: 80px; }
+    .meta-box .row .val { color: #2b3e34; font-weight: 600; flex: 1; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    th { background: #1b4332; color: #fff; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: left; }
+    td { padding: 12px; font-size: 13px; border-bottom: 1px solid #e0e0e0; }
+    td:last-child { text-align: right; font-weight: 700; }
+    tr:last-child td { border-bottom: 2px solid #1b4332; }
+    .total-row td { font-size: 15px; font-weight: 800; color: #1b4332; border-bottom: none; padding-top: 16px; }
+    .delivery-info { background: #f4f7f6; border-radius: 8px; padding: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+    .delivery-info .label { font-size: 11px; color: #6b7a72; text-transform: uppercase; }
+    .delivery-info .value { font-size: 14px; font-weight: 600; color: #1b4332; }
+    .badge { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .badge-win { background: rgba(43,147,72,0.12); color: #2b9348; }
+    .badge-loss { background: rgba(230,57,70,0.12); color: #e63946; }
+    .badge-pending { background: rgba(255,183,3,0.12); color: #f39c12; }
+    .badge-order_processing { background: rgba(2,128,144,0.12); color: #028090; }
+    .badge-shipped { background: rgba(46,196,182,0.12); color: #2ec4b6; }
+    .badge-delivered { background: rgba(43,147,72,0.12); color: #2b9348; }
+    .badge-cancelled { background: rgba(230,57,70,0.12); color: #e63946; }
+    .footer { text-align: center; padding-top: 20px; border-top: 2px solid #1b4332; }
+    .footer p { color: #6b7a72; font-size: 12px; }
+    .footer .thank { font-size: 18px; color: #1b4332; font-weight: 700; letter-spacing: 0.5px; }
+    .footer .thank span { color: #2ec4b6; }
+    @media print { body { padding: 0; } }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .invoice { max-width: 100%; }
+      .top { flex-direction: column; gap: 8px; }
+      .inv-title { text-align: left; }
+      .brand h1 { font-size: 22px; }
+      .inv-title h2 { font-size: 20px; }
+      .meta { flex-direction: column; gap: 16px; }
+      .meta-box { width: 100%; }
+      .meta-box .row { font-size: 12px; }
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      th, td { padding: 8px 6px; font-size: 12px; white-space: nowrap; }
+      .delivery-info { flex-direction: column; gap: 8px; align-items: flex-start; }
+      .footer .thank { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice">
+    <div class="top">
+      <div class="brand">
+        <h1>NATURAL FOODS</h1>
+        <p>Premium Organic Products</p>
+        <p style="margin-top:8px;font-size:11px;color:#6b7a72">
+          123 Organic Valley, Green Street<br>
+          contact@naturalfoods.com | +1 (555) 000-1234
+        </p>
+      </div>
+      <div class="inv-title">
+        <h2>INVOICE</h2>
+        <p>{{ order.order_id }}</p>
+        <p style="margin-top:4px;font-size:12px;color:#6b7a72">Date: {{ order.date|date:"F d, Y" }}</p>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="meta-box">
+        <h3>Bill To</h3>
+        <div class="row"><span class="lbl">Name</span><span class="val">{{ order.customer_name }}</span></div>
+        <div class="row"><span class="lbl">Email</span><span class="val">{{ customer.email|default:"—" }}</span></div>
+        <div class="row"><span class="lbl">Address</span><span class="val">{{ customer.address|default:"—" }}</span></div>
+      </div>
+      <div class="meta-box">
+        <h3>Order Info</h3>
+        <div class="row"><span class="lbl">Status</span><span class="val"><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></span></div>
+        <div class="row"><span class="lbl">Delivery</span><span class="val"><span class="badge badge-{{ order.delivery_status }}">{{ order.get_delivery_status_display }}</span></span></div>
+        <div class="row"><span class="lbl">Person</span><span class="val">{{ order.delivery_person_name|default:"—" }}</span></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:50%">Product</th>
+            <th style="width:15%;text-align:center">Quantity</th>
+            <th style="width:20%;text-align:center">Unit Price</th>
+            <th style="width:15%;text-align:right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600">{{ order.product_name|default:"Organic Product" }}</td>
+            <td style="text-align:center">{{ order.quantity }}</td>
+            <td style="text-align:center">${{ order.amount|floatformat:2 }}</td>
+            <td>${{ order.amount|floatformat:2 }}</td>
+          </tr>
+          <tr class="total-row">
+            <td colspan="3" style="text-align:right">Total Amount</td>
+            <td>${{ order.amount|floatformat:2 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    {% if order.delivery_status %}
+    <div class="delivery-info">
+      <div>
+        <div class="label">Delivery Status</div>
+        <div class="value">{{ order.get_delivery_status_display }}</div>
+      </div>
+      <div>
+        <div class="label">Delivery Person</div>
+        <div class="value">{{ order.delivery_person_name|default:"Not assigned" }}</div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+      <div class="thank">Thank You <span>&#10084;</span> Visit Again</div>
+      <p style="margin-top:8px">Natural Foods — Premium Organic Products</p>
+      <p>Invoice generated on {% now "F d, Y H:i" %}</p>
+    </div>
+    <div style="text-align:center;margin-top:20px">
+      <button onclick="window.print()" style="padding:10px 32px;background:#1b4332;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer"><i class="fas fa-print"></i> Print / Save PDF</button>
+    </div>
+  </div>
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 500);
+    };
+  </script>
+</body>
+</html>
