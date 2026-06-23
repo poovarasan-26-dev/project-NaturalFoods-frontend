@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% block title %}{{ site_settings.storefront_title|default:"Natural Foods Frontend" }}{% endblock %}
+{% block content %}
+<style>
+  .storefront-shell { display: grid; gap: 24px; }
+  .storefront-hero { {% if site_settings.storefront_hero_bg %}{{ site_settings.storefront_hero_bg }}{% else %}background: linear-gradient(135deg, #173d2f 0%, #2f7d57 60%, #9adcb8 100%){% endif %}; color: #fff; border-radius: 24px; padding: 32px; box-shadow: 0 20px 40px rgba(23, 61, 47, 0.18); }
+  .storefront-hero h1 { color: #fff; margin-bottom: 10px; }
+  .storefront-hero p { max-width: 760px; line-height: 1.7; opacity: 0.92; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+  .meta-pill { padding: 10px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.16); font-weight: 600; color: #fff; text-decoration: none; }
+  .storefront-grid { display: grid; grid-template-columns: 1.3fr 0.9fr; gap: 24px; }
+  .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; }
+  .product-card { background: #fff; border-radius: 18px; padding: 20px; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06); border: 1px solid rgba(0, 0, 0, 0.05); }
+  .product-card h3 { margin-bottom: 8px; }
+  .product-meta { color: #666; font-size: 0.92rem; margin-bottom: 16px; line-height: 1.6; }
+  .product-price { font-size: 1.3rem; font-weight: 700; color: #1f6f4a; margin-bottom: 14px; }
+  .product-actions { display: flex; gap: 10px; align-items: center; }
+  .product-actions input { width: 78px; }
+  .panel-stack { display: grid; gap: 24px; }
+  .summary-list { display: grid; gap: 12px; }
+  .summary-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eee; }
+  .summary-row:last-child { border-bottom: none; }
+  .message-card, .order-card { padding: 14px 16px; border-radius: 14px; background: #f8faf8; border: 1px solid #edf1ed; margin-bottom: 12px; }
+  .message-card:last-child, .order-card:last-child { margin-bottom: 0; }
+  .message-card p, .order-card p { margin-bottom: 6px; }
+  .reply-inline { border-top: 1px solid #edf1ed; padding-top: 10px; }
+  .helper-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  @media (max-width: 920px) { .storefront-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="storefront-shell">
+  <section class="storefront-hero" {% if site_settings.storefront_hero_image %}style="background-image:url('{{ site_settings.storefront_hero_image }}');background-size:cover;background-position:center"{% endif %}>
+    <h1>{{ site_settings.storefront_hero_title|default:"Natural Foods Customer Frontend" }}</h1>
+    <p>{{ site_settings.storefront_hero_text|default:"User login, product orders, customer messages, and reply flow all connect back into the backend CRM." }}</p>
+
+    {% if site_settings.storefront_video_url %}
+    <div style="margin:16px 0">
+      <iframe src="{{ site_settings.storefront_video_url }}" style="width:100%;max-width:560px;height:315px;border-radius:12px;border:none" allowfullscreen></iframe>
+    </div>
+    {% endif %}
+
+    <div class="hero-meta">
+      <div class="meta-pill">Customer: <span id="heroUsername">-</span></div>
+      <div class="meta-pill">Lead Status: <span id="heroLeadStatus">-</span></div>
+      <div class="meta-pill">Admin Contact: <span id="heroAdminEmail">-</span></div>
+      <a class="meta-pill" href="/messages/">Open Inbox / Reply</a>
+      <a class="meta-pill" href="/dashboard/">Open Admin Dashboard</a>
+    </div>
+  </section>
+
+  <div id="storefrontAlert" class="alert alert-success" style="display:none"></div>
+
+  <div class="storefront-grid">
+    <section class="card">
+      <div class="helper-row">
+        <h2>Products From Frontend</h2>
+        <button id="refreshProductsBtn" class="btn btn-secondary">Refresh Products</button>
+      </div>
+      <div id="productGrid" class="product-grid"></div>
+    </section>
+
+    <div class="panel-stack">
+      <section class="card">
+        <h2>Frontend Summary</h2>
+        <div class="summary-list">
+          <div class="summary-row"><strong>Email</strong><span id="summaryEmail">-</span></div>
+          <div class="summary-row"><strong>Role</strong><span id="summaryRole">-</span></div>
+          <div class="summary-row"><strong>Recent Orders</strong><span id="summaryOrderCount">0</span></div>
+          <div class="summary-row"><strong>Recent Messages</strong><span id="summaryMessageCount">0</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="helper-row">
+          <h2>Send Message To Admin</h2>
+          <a href="/messages/" class="btn btn-secondary">View All Messages</a>
+        </div>
+        <form id="storefrontMessageForm" class="crm-form">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="storefrontRecipient">Recipient Email</label>
+            <input id="storefrontRecipient" class="form-control" type="email" required>
+          </div>
+          <div class="form-group">
+            <label for="storefrontSubject">Subject</label>
+            <input id="storefrontSubject" class="form-control" type="text" placeholder="Order question / product question" required>
+          </div>
+          <div class="form-group">
+            <label for="storefrontBody">Message</label>
+            <textarea id="storefrontBody" class="form-control" rows="5" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Send Frontend Message</button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <div class="storefront-grid">
+    <section class="card">
+      <div class="helper-row">
+        <h2>My Recent Orders</h2>
+        <span>These orders update backend Orders, Notifications, and dashboard totals.</span>
+      </div>
+      <div id="recentOrders"></div>
+    </section>
+
+    <section class="card">
+      <div class="helper-row">
+        <h2>My Messages</h2>
+        <span>Send a message to start a conversation.</span>
+      </div>
+      <div id="recentMessages"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem("access_token");
+if (!token) { window.location.href = "/"; }
+
+function authHeaders(isJson = false) {
+  const headers = { "Authorization": "Bearer " + token };
+  if (isJson) headers["Content-Type"] = "application/json";
+  return headers;
+}
+
+function showStorefrontAlert(message, type = "success") {
+  const alert = document.getElementById("storefrontAlert");
+  alert.className = "alert alert-" + type;
+  alert.textContent = message;
+  alert.style.display = "block";
+  setTimeout(() => { alert.style.display = "none"; }, 2500);
+}
+
+async function loadStorefrontSummary() {
+  const res = await fetch("/api/dashboard/storefront/summary/", { headers: authHeaders() });
+  if (!res.ok) {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    window.location.href = "/";
+    return null;
+  }
+
+  const data = await res.json();
+  document.getElementById("heroUsername").textContent = data.user.username;
+  document.getElementById("heroLeadStatus").textContent = data.lead.status;
+  document.getElementById("heroAdminEmail").textContent = data.admin_contact.email || "-";
+  document.getElementById("summaryEmail").textContent = data.user.email;
+  document.getElementById("summaryRole").textContent = data.user.role;
+  document.getElementById("summaryOrderCount").textContent = data.recent_orders.length;
+  document.getElementById("summaryMessageCount").textContent = data.recent_messages.length;
+  document.getElementById("storefrontRecipient").value = data.admin_contact.email || "";
+
+  document.getElementById("recentOrders").innerHTML = data.recent_orders.map(order => `
+    <div class="order-card">
+      <p><strong>${order.order_id}</strong> - ${order.product_name || "Product order"}</p>
+      <p>Quantity: ${order.quantity} | Amount: $${parseFloat(order.amount).toFixed(2)}</p>
+      <p>Status: <span class="badge badge-${order.status}">${order.status}</span></p>
+    </div>
+  `).join("") || "<p>No orders placed from frontend yet.</p>";
+
+  document.getElementById("recentMessages").innerHTML = data.recent_messages.map(message => `
+    <div class="message-card">
+      <p><strong>${message.subject}</strong></p>
+      <p>From: ${message.sender_email} | ${new Date(message.created_at).toLocaleString()}</p>
+      <p>${message.body ? message.body.slice(0, 120) + (message.body.length > 120 ? '...' : '') : ''}</p>
+      <button class="btn btn-secondary" onclick="toggleReplyForm(${message.id})">Reply</button>
+      <div id="replyForm-${message.id}" class="reply-inline" style="display:none;margin-top:10px">
+        <textarea id="replyBody-${message.id}" class="form-control" rows="3" placeholder="Write your reply..."></textarea>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="sendInlineReply(${message.id}, '${message.sender_email}', '${message.subject.replace(/'/g, "\\'")}')">Send Reply</button>
+      </div>
+    </div>
+  `).join("") || "<p>No messages yet.</p> <p>Send a message to start a conversation.</p>";
+
+  return data;
+}
+
+async function loadProducts() {
+  const res = await fetch("/api/dashboard/storefront/products/", { headers: authHeaders() });
+  const products = await res.json();
+  document.getElementById("productGrid").innerHTML = products.map(product => `
+    <article class="product-card">
+      <h3>${product.name}</h3>
+      <div class="product-meta">Category: ${product.category}<br>Stock: ${product.stock} available</div>
+      <div class="product-price">$${parseFloat(product.price).toFixed(2)}</div>
+      <div class="product-actions">
+        <input type="number" min="1" max="${Math.max(product.stock, 1)}" value="1" class="form-control" id="qty-${product.id}">
+        <button class="btn btn-primary" onclick="placeOrder(${product.id})" ${product.stock < 1 ? "disabled" : ""}>${product.stock < 1 ? "Out of Stock" : "Order Now"}</button>
+      </div>
+    </article>
+  `).join("") || "<p>No products available.</p>";
+}
+
+async function placeOrder(productId) {
+  const qtyInput = document.getElementById("qty-" + productId);
+  const quantity = parseInt(qtyInput.value || "1", 10);
+  try {
+    const res = await fetch("/api/dashboard/storefront/orders/place/", {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify({ product_id: productId, quantity }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showStorefrontAlert(data.detail || "Unable to place order", "danger");
+      return;
+    }
+    showStorefrontAlert("Frontend order placed successfully. Backend orders and dashboard stats are updated.");
+    await Promise.all([loadStorefrontSummary(), loadProducts()]);
+  } catch (error) {
+    showStorefrontAlert("Network error while placing order", "danger");
+  }
+}
+
+document.getElementById("refreshProductsBtn").addEventListener("click", loadProducts);
+
+document.getElementById("storefrontMessageForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  try {
+    const res = await fetch("/api/messages/compose/", {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify({
+        recipient_email: document.getElementById("storefrontRecipient").value,
+        subject: document.getElementById("storefrontSubject").value,
+        body: document.getElementById("storefrontBody").value,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showStorefrontAlert(JSON.stringify(data), "danger");
+      return;
+    }
+    document.getElementById("storefrontMessageForm").reset();
+    await loadStorefrontSummary();
+    showStorefrontAlert("Frontend message sent. Backend messages, notifications, and lead status are updated.");
+  } catch (error) {
+    showStorefrontAlert("Network error while sending message", "danger");
+  }
+});
+
+function toggleReplyForm(msgId) {
+  const form = document.getElementById("replyForm-" + msgId);
+  form.style.display = form.style.display === "none" ? "block" : "none";
+}
+
+async function sendInlineReply(msgId, senderEmail, subject) {
+  const body = document.getElementById("replyBody-" + msgId).value;
+  if (!body.trim()) { showStorefrontAlert("Please write a reply", "danger"); return; }
+  try {
+    const res = await fetch("/api/messages/compose/", {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify({
+        recipient_email: senderEmail,
+        subject: "Re: " + subject,
+        body: body,
+        parent: msgId,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) { showStorefrontAlert(JSON.stringify(data), "danger"); return; }
+    document.getElementById("replyBody-" + msgId).value = "";
+    document.getElementById("replyForm-" + msgId).style.display = "none";
+    await loadStorefrontSummary();
+    showStorefrontAlert("Reply sent successfully!");
+  } catch (error) {
+    showStorefrontAlert("Network error while sending reply", "danger");
+  }
+}
+
+Promise.all([loadStorefrontSummary(), loadProducts()]).catch(() => {
+  showStorefrontAlert("Unable to load storefront right now", "danger");
+});
+</script>
+{% endblock %}

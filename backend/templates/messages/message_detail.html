@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Message - CRM System{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2 id="msgSubject"></h2>
+  <a href="/messages/" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div id="msgDetail" class="card"></div>
+<div id="replies" class="card"></div>
+
+<div class="form-page">
+  <h3>Reply</h3>
+  <form id="replyForm" class="crm-form">
+    {% csrf_token %}
+    <div class="form-group">
+      <textarea id="replyBody" class="form-control" rows="4" placeholder="Write your reply..." required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send Reply</button>
+  </form>
+</div>
+
+<script>
+const msgId = window.location.pathname.match(/\/messages\/(\d+)/)?.[1];
+const token = localStorage.getItem("access_token");
+if (!token) { window.location.href = "/login/"; }
+
+let msgSenderEmail = "";
+
+async function loadMessage() {
+  try {
+    const res = await fetch("/api/messages/" + msgId + "/", {
+      headers: {"Authorization": "Bearer " + token},
+    });
+    if (!res.ok) { window.location.href = "/messages/"; return; }
+    const m = await res.json();
+    msgSenderEmail = m.sender_email;
+    document.getElementById("msgSubject").textContent = m.subject;
+    document.getElementById("msgDetail").innerHTML = `
+      <p><strong>From:</strong> ${m.sender_email}</p>
+      <p><strong>To:</strong> ${m.recipient_email}</p>
+      <p><strong>Date:</strong> ${new Date(m.created_at).toLocaleString()}</p>
+      <hr>
+      <p>${m.body}</p>
+    `;
+    if (m.replies && m.replies.length) {
+      document.getElementById("replies").innerHTML = "<h3>Replies</h3>" +
+        m.replies.map(r => `
+          <div class="reply">
+            <small><strong>${r.sender_email}</strong> on ${new Date(r.created_at).toLocaleString()}</small>
+            <p>${r.body}</p>
+          </div>
+        `).join("");
+    }
+    fetch("/api/messages/" + msgId + "/read/", {
+      method: "POST",
+      headers: {"Authorization": "Bearer " + token},
+    }).catch(() => {});
+  } catch (e) { console.error(e); }
+}
+
+document.getElementById("replyForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const data = {
+    recipient_email: msgSenderEmail,
+    subject: "Re: " + document.getElementById("msgSubject").textContent,
+    body: document.getElementById("replyBody").value,
+    parent: parseInt(msgId),
+  };
+  try {
+    const res = await fetch("/api/messages/compose/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+      },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      window.location.reload();
+    }
+  } catch (e) { console.error(e); }
+});
+
+loadMessage();
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}{% if pk %}Edit{% else %}Create{% endif %} Lead - CRM System{% endblock %}
+{% block content %}
+<div class="form-page">
+  <h2>{% if pk %}Edit Lead{% else %}Create Lead{% endif %}</h2>
+  <form id="leadForm" class="crm-form">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone</label>
+      <input type="text" id="phone" name="phone" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="company">Company</label>
+      <input type="text" id="company" name="company" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="status">Status</label>
+      <select id="status" name="status" class="form-control">
+        <option value="new">New</option>
+        <option value="contacted">Contacted</option>
+        <option value="win">Win</option>
+        <option value="loss">Loss</option>
+        <option value="no_response">No Response</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" class="form-control" rows="4"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">{% if pk %}Update{% else %}Create{% endif %}</button>
+    <a href="/leads/" class="btn btn-secondary">Cancel</a>
+  </form>
+  <div id="leadFormError" class="alert alert-danger" style="display:none"></div>
+</div>
+
+<script>
+const leadId = window.location.pathname.match(/\/leads\/(\d+)/)?.[1];
+const token = localStorage.getItem("access_token");
+if (!token) { window.location.href = "/login/"; }
+
+if (leadId) {
+  fetch("/api/leads/" + leadId + "/", {
+    headers: {"Authorization": "Bearer " + token},
+  }).then(r => r.json()).then(data => {
+    document.getElementById("name").value = data.name || "";
+    document.getElementById("email").value = data.email || "";
+    document.getElementById("phone").value = data.phone || "";
+    document.getElementById("company").value = data.company || "";
+    document.getElementById("status").value = data.status || "new";
+    document.getElementById("notes").value = data.notes || "";
+  }).catch(console.error);
+}
+
+document.getElementById("leadForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const data = {
+    name: document.getElementById("name").value,
+    email: document.getElementById("email").value,
+    phone: document.getElementById("phone").value,
+    company: document.getElementById("company").value,
+    status: document.getElementById("status").value,
+    notes: document.getElementById("notes").value,
+  };
+  const method = leadId ? "PUT" : "POST";
+  const url = leadId ? "/api/leads/" + leadId + "/" : "/api/leads/";
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+      },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      window.location.href = "/leads/";
+    } else {
+      const err = await res.json();
+      document.getElementById("leadFormError").textContent = JSON.stringify(err);
+      document.getElementById("leadFormError").style.display = "block";
+    }
+  } catch (e) {
+    document.getElementById("leadFormError").textContent = "Network error";
+    document.getElementById("leadFormError").style.display = "block";
+  }
+});
+</script>
+{% endblock %}
