@@ -16,7 +16,7 @@ urlpatterns = [
     path("api/leads/", include("leads.urls")),
     path("api/messages/", include("messages_app.urls")),
     path("api/dashboard/", include("dashboard.urls")),
-    path("", TemplateView.as_view(template_name="index.html"), name="home"),
+    path("", RedirectView.as_view(url="/dashboard/"), name="home"),
     path("storefront/", TemplateView.as_view(template_name="storefront.html"), name="storefront-page"),
     path("register/", TemplateView.as_view(template_name="registration/register.html"), name="register-page"),
     path("login/", TemplateView.as_view(template_name="registration/login.html"), name="login-page"),
