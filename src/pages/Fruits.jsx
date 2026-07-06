@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowRight, Star, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { apiRequest } from '../lib/api';
 import FruitCardModal from '../components/FruitCardModal';
 
 const Fruits = ({ onAddToCart, authToken }) => {
@@ -40,11 +41,7 @@ const Fruits = ({ onAddToCart, authToken }) => {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch('/api/dashboard/storefront/products/?_=' + Date.now())
-      .then(res => {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
+    apiRequest('/api/dashboard/storefront/products/', { method: 'GET' })
       .then(products => {
         if (cancelled) return;
         const { map, fruitsList } = mapBackendToFrontend(products);

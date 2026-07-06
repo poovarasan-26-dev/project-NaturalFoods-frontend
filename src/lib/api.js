@@ -158,9 +158,11 @@ export async function loginUser({ username, password }) {
 }
 
 export async function fetchProducts(token) {
-  const res = await fetch('/api/dashboard/storefront/products/?_=' + Date.now());
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    return await apiRequest('/api/dashboard/storefront/products/', { method: 'GET', token });
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchStorefrontSummary(token) {
