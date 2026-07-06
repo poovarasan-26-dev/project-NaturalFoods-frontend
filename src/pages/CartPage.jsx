@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
+import { resolveImage } from '../lib/utils';
 
 const CartPage = ({ cartItems, cartCount, onUpdateCartItem, onRemoveCartItem, onShopClick }) => {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const CartPage = ({ cartItems, cartCount, onUpdateCartItem, onRemoveCartItem, on
                   return (
                     <div key={item.id} className="cart-page-item">
                       <span className="cart-page-item-icon">
-                        {item.image ? <img src={item.image} alt="" className="cart-page-item-img" /> : item.icon}
+                        {item.image ? <img src={resolveImage(item.image)} alt="" className="cart-page-item-img" /> : item.icon}
                       </span>
                       <div className="cart-page-item-info">
                         <span className="cart-page-item-name">{item.name}</span>

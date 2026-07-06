@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, CreditCard, Banknote, ShoppingBag, CheckCircle2, ArrowRight, ArrowLeft, PartyPopper, Sparkles, User, Pencil, Trash2, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getValidAccessToken, refreshAccessToken, placeStorefrontOrder, cancelStorefrontOrder, fetchProducts } from '../lib/api';
+import { resolveImage } from '../lib/utils';
 
 const ShopModal = ({ isOpen, onClose, cartItems, cartCount, onShopSuccess, onUpdateCartItem, onRemoveCartItem, user, onAuthClick }) => {
   const navigate = useNavigate();
@@ -249,7 +250,7 @@ const ShopModal = ({ isOpen, onClose, cartItems, cartCount, onShopSuccess, onUpd
                   {cartItems.map((item) => (
                     <div key={item.id} className="cart-item-card">
                       {item.image ? (
-                        <img src={item.image} alt={item.name} className="cart-item-img" />
+                        <img src={resolveImage(item.image)} alt={item.name} className="cart-item-img" />
                       ) : (
                         <span style={{ fontSize: '2rem' }}>{item.icon}</span>
                       )}

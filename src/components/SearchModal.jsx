@@ -3,13 +3,7 @@ import { Search, X, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
-
-function resolveImage(src) {
-  if (!src) return null;
-  if (src.startsWith('http://') || src.startsWith('https://')) return src;
-  return `${API_BASE}${src.startsWith('/') ? src : `/${src}`}`;
-}
+import { resolveImage } from '../lib/utils';
 
 const iconByCategory = {
   Fruits: '🍎',

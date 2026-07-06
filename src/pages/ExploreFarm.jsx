@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { resolveImage } from '../lib/utils';
 import { ArrowLeft, Leaf, ShoppingBag } from 'lucide-react';
 
 const categoryConfig = {
@@ -49,9 +50,7 @@ const ProductCard = ({ product, categoryKey }) => {
     return () => observer.disconnect();
   }, [product.id]);
 
-  const imageUrl = product.image
-    ? `${product.image}${product.image.includes('?_t=') ? '' : '?_t=' + Date.now()}`
-    : null;
+  const imageUrl = product.image ? resolveImage(product.image) : null;
 
   return (
     <motion.div

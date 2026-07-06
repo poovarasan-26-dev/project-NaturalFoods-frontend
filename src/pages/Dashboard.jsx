@@ -6,6 +6,7 @@ import {
   MessagesSquare, Send
 } from 'lucide-react'
 import { clearAuthSession } from '../lib/api'
+import { resolveImage } from '../lib/utils'
 
 const API_BASE = ''
 function getAnyToken() {
@@ -430,7 +431,7 @@ export default function Dashboard() {
                         <td>
                           <div className="admin-product-visual"
                             dangerouslySetInnerHTML={{ __html: p.image
-                              ? `<img src="${p.image}${p.image.includes('?_t=') ? '' : '?_t=' + Date.now()}" class="admin-product-img" />`
+                              ? `<img src="${resolveImage(p.image)}" class="admin-product-img" />`
                               : get3DVisual(p.image_3d)
                             }}
                           />

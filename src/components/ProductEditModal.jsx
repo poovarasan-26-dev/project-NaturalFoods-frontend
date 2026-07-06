@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, Trash2, Save, Image } from 'lucide-react';
+import { resolveImage } from '../lib/utils';
 
 const ProductEditModal = ({ isOpen, onClose, product, onSave, onDelete }) => {
   const [name, setName] = useState('');
@@ -17,7 +18,7 @@ const ProductEditModal = ({ isOpen, onClose, product, onSave, onDelete }) => {
       setName(product.name || '');
       setBasePrice(product.basePrice || 0);
       setStock(product.stock || 'In Stock');
-      setImagePreview(product.image || null);
+      setImagePreview(resolveImage(product.image) || null);
       setConfirmDelete(false);
     }
   }, [product]);
