@@ -1,3 +1,19 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+db.sqlite3
+media/
+staticfiles/
+
 # Logs
 logs
 *.log
@@ -7,12 +23,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# Editor
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -22,3 +33,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
